@@ -4,23 +4,23 @@ import User from "@/models/User";
 import { headers } from "next/headers";
 import { NextRequest } from "next/server";
 
-export async function POST(req) {
+export async function POST(req){
     const wh = new Webhook(process.env.SIGNING_SECRET)
-    const headerPayload = await headers();
+    const headerPayload = await headers()
     const svixHeaders = {
         "svix-id": headerPayload.get("svix-id"),
         "svix-timestamp": headerPayload.get("svix-timestamp"),
         "svix-signature": headerPayload.get("svix-signature"),
-        
     };
 
-    // Get payload and verify it
+    // Get the payload and verify it
 
     const payload = await req.json();
     const body = JSON.stringify(payload);
-    const {data, type} = wh.verify(body, svixHeaders);
+    const {data, type} = wh.verify(body, svixHeaders)
 
-    // Prepare user data to be saved in database
+    // Prepare the user data to be saved in the database
+
     const userData = {
         _id: data.id,
         email: data.email_addresses[0].email_address,
@@ -31,15 +31,15 @@ export async function POST(req) {
     await connectDB();
 
     switch (type) {
-        case "user.created":
+        case 'user.created':
             await User.create(userData)
             break;
-
-            case "user.updated":
+    
+        case 'user.updated':
             await User.findByIdAndUpdate(data.id, userData)
             break;
 
-            case "user.deleted":
+        case 'user.deleted':
             await User.findByIdAndDelete(data.id)
             break;
     
